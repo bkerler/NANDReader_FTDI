@@ -1,0 +1,28 @@
+*** Checklist for a new libftdi release ***
+- Update ChangeLog and AUTHORS via git history
+
+- Update version number in the following files:
+  - CMakeLists.txt
+  - README
+
+- Run "make dist"
+
+- Diff tarball to previous version, check if all
+  important changes are in the ChangeLog
+
+- Ensure all modifications are checked in
+
+- Sign tarball, build .src.rpm and sign it, too
+
+- Create git tag:
+  - git tag -s -u 24F006F5 v0.XX
+  - git tag -d latest-release ; git tag latest-release
+  - git push --tags
+
+- Website
+  - Upload tarball and .src.rpm
+  - Add ChangeLog to main page
+  - Update URLs in download section
+  - Generate API documentation and upload it
+
+- Announce on mailinglist & freshmeat

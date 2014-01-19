@@ -1,0 +1,54 @@
+* How to cross compile libftdi-1.x for Windows? *
+   1 - To cross-compile for Win32 with mingw, you need to
+       have libusb-1.0 for Windows. libusbx is a fork of libusb-1.0
+       project which has gained popularity under Windows and Linux.
+       Therefore the instruction here uses libusbx. The process to
+       use libusb-1.0 from libusb.org is similar but take note it
+       does not offer Windows binary as of Jan 09 2013.
+
+   2 - Get libusbx Windows release binary from Sourceforge.
+       http://sourceforge.net/projects/libusbx/files/releases/
+
+   3 - The release version is libusbx-1.0.14-win.7z (706.2KB)
+       as of Jan 09, 2013.
+
+   4 - Alternatively you can also build form the release source tar ball
+       or the git source tree following standard cross compile process
+
+   5 - Copy include/libusbx-1.0/libusb.h to the include directory of your
+       cross compiler, eg.,
+       /opt/cross/i386-mingw32msvc/include/
+
+   6 - Copy MinGW32/static/libusb-1.0.a and MinGW32/dll/libusb-1.0.dll.a
+       to the library directory of your cross compiler, eg.,
+       /opt/cross/i386-mingw32msvc/lib/
+
+   7 - Create a build directory like "mkdir build-win32", e.g in ../libftdi/
+
+   8 - edit Toolchain-mingw32.cmake to reflect your cross compiler location.
+
+   9 - cd into the build directory and run
+       "cmake -DCMAKE_TOOLCHAIN_FILE=../Toolchain-mingw32.cmake .."
+
+  10 - Copy src/ftdi.h to the include directory of your cross compiler,
+         eg., /opt/cross/i386-mingw32msvc/include/
+
+  11 - Copy build-win32/src/*.a to the library directory of your cross compiler,
+         eg., /opt/cross/i386-mingw32msvc/lib/
+
+
+* How to run libftdi-1.x under Windows *
+
+libusbx (or libusb-1.0) Windows backend will rely on a proper driver to run.
+Please refer to the following wiki page on the instruction of
+installation of the proper driver.
+https://github.com/libusbx/libusbx/wiki/Windows-Backend#wiki-How_to_use_libusbx_on_Windows
+
+As of Jan 09 2013, libusb-1.0 Windows backend only supports WinUSB
+and libusbx's support of libusb0.sys and libusbk.sys are considered less
+mature than WinUSB. Therefore, WinUSB driver installation using Zadig
+is recommended.
+
+Take note once you replace the original FTDI driver with WinUSB driver,
+you can no longer use the functionality the original FTDI driver provides
+(eg. Virtual Serial Port or D2XX).

@@ -1,0 +1,26 @@
+# Doxyfile 1.7.4
+
+# xml generation only
+# keep settings but shut off all other generation
+@INCLUDE = Doxyfile
+
+GENERATE_TODOLIST      = NO
+GENERATE_TESTLIST      = NO
+GENERATE_BUGLIST       = NO
+GENERATE_DEPRECATEDLIST= NO
+GENERATE_HTML          = NO
+GENERATE_DOCSET        = NO
+GENERATE_HTMLHELP      = NO
+GENERATE_CHI           = NO
+GENERATE_QHP           = NO
+GENERATE_ECLIPSEHELP   = NO
+GENERATE_TREEVIEW      = NO
+GENERATE_LATEX         = NO
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+GENERATE_AUTOGEN_DEF   = NO
+GENERATE_PERLMOD       = NO
+GENERATE_TAGFILE       =
+GENERATE_LEGEND        = NO
+
+GENERATE_XML           = YES

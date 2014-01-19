@@ -1,0 +1,28 @@
+// PC-Lint 9.00 settings
+--iz:\usr\include\libusb-1.0
+--i../src
+--i../ftdipp
+
+-emacro(527, ftdi_error_return)     // ignore "unreachable code"
+-emacro(717, ftdi_error_return)
+
+-epu // Pointer to unsigned/signed of the same type is ok
+
++fie // Allow enum to int conversion
+
+-ecall(534, usb_close)              // silence ignored return value from usb_close
+
+// Disable bogus BOOST warnings
+-emacro(58,BOOST_ASSERT)
+-emacro(506, BOOST_FOREACH)
+-emacro(666, BOOST_FOREACH)
+-esym(666, BOOST_FOREACH)
+-emacro(1023, BOOST_FOREACH)
+-emacro(1793, BOOST_FOREACH)
+-esym(665, BOOST_FOREACH)
+-e123
+
+// Don't complain we are running with -wlib(0)
+// as the boost headers can't be parsed properly
+-estring(686, -wlib(0))
+-wlib(0)

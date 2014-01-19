@@ -1,0 +1,3 @@
+[Project]
+Manager=KDevCMakeManager
+Name=libftdi-1.0

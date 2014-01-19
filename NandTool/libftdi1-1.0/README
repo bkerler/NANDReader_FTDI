@@ -1,0 +1,53 @@
+--------------------------------------------------------------------
+libftdi version 1.0
+--------------------------------------------------------------------
+
+libftdi - A library (using libusb) to talk to FTDI's UART/FIFO chips
+including the popular bitbang mode.
+
+The following chips are supported:
+- FT4232H / FT2232H
+- FT232R  / FT245R
+- FT2232L / FT2232D / FT2232C
+- FT232BM / FT245BM (and the BL/BQ variants)
+- FT8U232AM / FT8U245AM
+
+libftdi requires libusb 1.x.
+
+The AUTHORS file contains a list of all the people
+that made libftdi possible what it is today.
+
+Changes
+-------
+* Ported to libusb 1.x (initial work by Jie Zhang)
+* Many eeprom handling improvements (Uwe Bonnes, Anders Larsen)
+* Renamed pkconfig, library .so etc. files to "libftdi1" (Intra2net)
+* ftdi_eeprom is part of libftdi now (Intra2net)
+
+* New baudrate calculation code + unit tests (Uwe Bonnes and Intra2net)
+* Improved python bindings including python3 support (Michel Zou)
+* Switched completely to cmake build system (Intra2net)
+* cmake: Easy libftdi discovery via find_package() (Michel Zou)
+* eeprom handling now done via get()/set() functions (Uwe Bonnes)
+* C++ wrapper: Fixed use-after-free in List::find_all() (Intra2net)
+* Documentation updates (Xiaofan Chen)
+* See the git history for more changes and fixes
+
+You'll find the newest version of libftdi at:
+http://www.intra2net.com/en/developer/libftdi
+
+
+Quick start
+-----------
+mkdir build
+cd build
+
+cmake -DCMAKE_INSTALL_PREFIX="/usr" ../
+make
+make install
+
+More verbose build instructions are in "README.build"
+
+--------------------------------------------------------------------
+www.intra2net.com                             2003-2013 Intra2net AG
+--------------------------------------------------------------------
