@@ -20,11 +20,11 @@
 #define O_BINARY 0
 #endif 
 
-+#ifdef WIN32
+#ifdef WIN32
  int _tmain(int argc, _TCHAR* argv[])
-+#else
-+int main(int argc, _TCHAR* argv[])
-+#endif
+#else
+int main(int argc, _TCHAR* argv[])
+#endif
 {
 int x, r;
 	int vid=0, pid=0;
