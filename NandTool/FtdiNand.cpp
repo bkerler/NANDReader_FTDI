@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
+#include <cstdlib>
+#include <unistd.h>
 #include "FtdiNand.hpp"
 #ifdef WIN32
 #include <windows.h>
