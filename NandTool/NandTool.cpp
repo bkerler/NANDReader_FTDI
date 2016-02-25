@@ -1,4 +1,4 @@
-// NandTool.cpp : Definiert den Einstiegspunkt für die Konsolenanwendung.
+          // NandTool.cpp : Definiert den Einstiegspunkt für die Konsolenanwendung.
 //
 
 #include "stdafx.h"
@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #ifdef WIN32
 #include <io.h>
 #endif
@@ -21,11 +20,15 @@
 #define O_BINARY 0
 #endif 
 
-#ifdef WIN32
- int _tmain(int argc, _TCHAR* argv[])
-#else
-int main(int argc, _TCHAR* argv[])
-#endif
+void gotoxy(int x, int y)
+{
+  COORD coord;
+  coord.X = x;
+  coord.Y = y;
+  SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+int _tmain(int argc, _TCHAR* argv[])
 {
 int x, r;
 	int vid=0, pid=0;
@@ -50,9 +53,9 @@ int x, r;
 		} else if (strcmp(argv[x],"-r")==0 && x<=(argc-2)) {
 			action=actionRead;
 			file=argv[++x];
-		} else if (strcmp(argv[x],"-w")==0 && x<=(argc-2)) {
-			action=actionWrite;
-			file=argv[++x];
+//		} else if (strcmp(argv[x],"-w")==0 && x<=(argc-2)) {
+//			action=actionWrite;
+//			file=argv[++x];
 		} else if (strcmp(argv[x],"-v")==0 && x<=(argc-2)) {
 			action=actionVerify;
 			file=argv[++x];
@@ -91,7 +94,7 @@ int x, r;
 		printf("Usage: [-i|-r file|-v file] [-t main|oob|both] [-s]\n");
 		printf("  -i      - Identify chip\n");
 		printf("  -r file - Read chip to file\n");
-		printf("  -w file - Write chip from file\n");
+//		printf("  -w file - Write chip from file\n");
 		printf("  -v file - Verify chip from file data\n");
 		printf("  -t reg  - Select region to read/write (main mem, oob ('spare') data or both, interleaved)\n");
 		printf("  -s      - clock FTDI chip at 12MHz instead of 60MHz\n");
@@ -126,7 +129,8 @@ int x, r;
 		char *verifyBuf=new char[size];
 		int verifyErrors=0;
 		nand.showInfo();
-		printf("%sing %li pages of %i bytes...\n", action==actionRead?"Read":"Verify", pages, id->getPageSize());
+		printf("%sing %i pages of %i bytes...\n", action==actionRead?"Read":"Verify", pages, id->getPageSize());
+		int oldpos=0;
 		for (x=0; x<pages; x++) {
 			nand.readPage(x, pageBuf, size, access);
 			if (action==actionRead) {
@@ -148,8 +152,11 @@ int x, r;
 					}
 				}
 			}
-			if ((x&15)==0) {
-				printf("%i/%li\n\033[A", x, pages);
+			int pos=((float)x/(float)pages*(float)100);
+			if (pos>oldpos) {
+				printf("%i/%i\n", x, pages);
+				gotoxy(0,7);
+				oldpos=pos;
 			}
 		}
 		if (action==actionVerify) {

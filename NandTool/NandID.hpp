@@ -16,7 +16,7 @@ public:
 	int getOobSize();
 	bool isLargePage();
 	int getAddrByteCount();
-	unsigned char* getID();
+	unsigned char* NandID::getID();
 #pragma pack(push,1)
 	struct ONFI_Param {
 		struct rev_info
@@ -112,4 +112,5 @@ private:
 	bool m_nandIsLP;
 	bool m_onfib;
 };
+
 #endif

@@ -30,6 +30,7 @@ NandDataLP::NandDataLP(FtdiNand *ftdi, NandID *id) :
 
 int NandDataLP::readPage(int pageno, char *buff, int max) {
 	//Read a page
+	char status=0;
 	m_ft->sendCmd(NAND_CMD_READ0);
 	m_ft->sendAddr(pageno<<16L, m_id->getAddrByteCount());
 	m_ft->sendCmd(NAND_CMD_READSTART);

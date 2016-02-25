@@ -1,7 +1,7 @@
 #ifndef FTDINAND
 #define FTDINAND
 
-#include <ftdi.h>
+#include <ftd2xx.h>
 
 using namespace std;
 
@@ -18,9 +18,9 @@ public:
 	unsigned char status();
 private:
 	int error(const char *err);
-	int nandRead(int cl, int al, char *buf, int count);
+	FT_STATUS nandRead(int cl, int al, char *buf, int count);
 	int nandWrite(int cl, int al, char *buf, int count);
-	struct ftdi_context m_ftdi;
+	FT_HANDLE m_ftdi;
 	bool m_slowAccess;
 	int m_rbErrorCount;
 };
