@@ -182,7 +182,7 @@ NandID::NandID(FtdiNand *fn, unsigned char *idBytes) {
 		fn->sendCmd(NAND_CMD_ONFI);
 		fn->sendAddr(0, 1);
 		fn->waitReady();
-		fn->readData((char*)&m_onfi, 0x100);
+		fn->readData((char*)&m_onfi, sizeof(m_onfi));
 		if (m_onfi.rev.magic==0x49464E4F) m_onfib=true;
 		else m_onfib=false;
 	}
