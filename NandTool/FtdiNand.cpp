@@ -102,7 +102,7 @@ FT_STATUS FtdiNand::nandRead(int cl, int al, char *buf, int count) {
 	if (FT_Write(m_ftdi, cmds, i,&written)!=FT_OK) return error("writing cmd");
 	if (m_slowAccess) {
 		//Div by 5 mode makes the ftdi-chip return all databytes double. Compensate for that.
-		FT_Read(m_ftdi, ftdata, count*2,&read);
+		re=FT_Read(m_ftdi, ftdata, count * 2, &read);
 		for (x=0; x<count; x++) buf[x]=ftdata[x*2];
 		read/=2;
 	} else {
