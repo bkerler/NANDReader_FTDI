@@ -12,7 +12,10 @@
 #include <io.h>
 #endif
 #include "FtdiNand.hpp"
+#include "FtdiDiag.hpp"
 #include "NandChip.hpp"
+
+#define ALL_TESTS	-1
 
 //Windows needs O_BINARY to open binary files, but the flag is undefined
 //on Unix. Hack around that. (Thanks, Shawn Hoffman)
@@ -32,6 +35,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 int x, r;
 	int vid=0, pid=0;
+	int test_number = ALL_TESTS;//default
 	bool err=false;
 	bool doSlow=false;
 	string file="";
@@ -40,17 +44,26 @@ int x, r;
 		actionID,
 		actionRead,
 		actionWrite,
-		actionVerify
+		actionVerify,
+		actionDiagnostics
 	};
 
-	printf("FT2232H-based NAND reader");
+	printf("FT2232H-based NAND reader\n");
 	//Parse command line options
 	Action action=actionNone;
 	NandChip::AccessType access=NandChip::accessBoth;
 	for (x=1; x<argc; x++) {
-		if (strcmp(argv[x],"-i")==0) {
+		if (strcmp(argv[x], "-i")==0) {
 			action=actionID;
-		} else if (strcmp(argv[x],"-r")==0 && x<=(argc-2)) {
+			}
+		else if (strcmp(argv[x], "-d") == 0){
+				action = actionDiagnostics;
+				if (x<argc-1)
+					{//there is something after -d parameter
+						test_number = strtol(argv[++x], NULL, 0);
+					}
+			}
+		else if (strcmp(argv[x],"-r")==0 && x<=(argc-2)) {
 			action=actionRead;
 			file=argv[++x];
 //		} else if (strcmp(argv[x],"-w")==0 && x<=(argc-2)) {
@@ -91,7 +104,7 @@ int x, r;
 	}
 
 	if (action==actionNone || err || argc==1) {
-		printf("Usage: [-i|-r file|-v file] [-t main|oob|both] [-s]\n");
+		printf("Usage: [-i|-r file|-v file|-d|-d test_no] [-t main|oob|both] [-s]\n");
 		printf("  -i      - Identify chip\n");
 		printf("  -r file - Read chip to file\n");
 //		printf("  -w file - Write chip from file\n");
@@ -99,7 +112,19 @@ int x, r;
 		printf("  -t reg  - Select region to read/write (main mem, oob ('spare') data or both, interleaved)\n");
 		printf("  -s      - clock FTDI chip at 12MHz instead of 60MHz\n");
 		printf("  -u vid:pid - use different FTDI USB vid/pid. Vid and pid are in hex.\n");
+		printf("  -d      - FTDI test mode, do all tests\n");
+		printf("  -d test_no - FTDI test mode, one test\n");
 		exit(0);
+	}
+
+	if (actionDiagnostics == action)
+	{
+		FtdiDiag diag;
+		if (ALL_TESTS == test_number)
+			diag.startAllTests();
+		else
+			diag.startOneTest(test_number);
+		return 0;
 	}
 
 	FtdiNand ftdi;

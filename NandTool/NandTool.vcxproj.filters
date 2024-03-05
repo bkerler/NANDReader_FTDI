@@ -45,6 +45,9 @@
     <ClInclude Include="NandCmds.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="FtdiDiag.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -69,6 +72,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="NandID.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="FtdiDiag.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,3 +6,6 @@ Heavily modified to support writing nand, universally detecting and dumping nand
 using Linux Kernel source code additions.
 
 (c) 2014 B. Kerler <info AT revskills.de>
+
+with nord-data-recall fixes/improvements:
+- diagnostic function (parameters '-d') to execute hardware test
