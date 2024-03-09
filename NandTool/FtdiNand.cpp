@@ -152,7 +152,7 @@ FtdiNand::FtdiNand() {
 }
 
 //Try to find the ftdi chip and open it.
-int FtdiNand::open(int vid, int pid, bool doslow) {
+int FtdiNand::open(int vid, int pid, bool doslow, int dev_id) {
 	unsigned char slow=DIS_DIV_5;
 	DWORD written;
 	if (doslow) slow=EN_DIV_5;
@@ -164,7 +164,7 @@ int FtdiNand::open(int vid, int pid, bool doslow) {
 	
 	//if (ftdi_init(&m_ftdi)<0) return error("init");
 	//if (ftdi_usb_open(&m_ftdi, vid, pid)<0) return error("open");
-	if (FT_Open(0,&m_ftdi)!=FT_OK) return error("open");
+	if (FT_Open(dev_id,&m_ftdi)!=FT_OK) return error("open");
 	//if (ftdi_set_bitmode(&m_ftdi, 0, BITMODE_MCU)<0) error("bitmode");
 	if (FT_SetBitMode(m_ftdi,0,BITMODE_MCU)!=FT_OK) error("bitmode");
 	//if (ftdi_write_data(&m_ftdi, &slow, 1)<0) return error("writing div5 cmd");

@@ -16,7 +16,7 @@ FtdiDiag::~FtdiDiag(void)
 	FT_Close(ftdi_handle_channel_b);
 }
 
-FtdiDiag::FtdiDiag()
+FtdiDiag::FtdiDiag(int dev_id)
 {
 	DWORD number_of_ftdis;
 	DWORD Flags;
@@ -41,7 +41,7 @@ FtdiDiag::FtdiDiag()
 			printf("Error: FT_GetDeviceInfoDetail\n");
 			exit(1);
 		}
-		printf("Device %d:\n", i);
+		printf("Device #%d:\n", i);
 		printf(" -Flgs 0x%x\n", Flags);
 		printf(" -Type 0x%x\n", Type);
 		printf(" -ID   0x%x\n", ID);
@@ -49,15 +49,29 @@ FtdiDiag::FtdiDiag()
 		printf(" -Desc %s\n", Description);
 	}
 
-	if (FT_OK != FT_Open(0, &ftdi_handle_channel_a))
+	if (FT_OK != FT_Open(dev_id, &ftdi_handle_channel_a))
 	{
 		printf("Error: FT_OPEN channel a\n");
 		exit(1);
 	}
-	if (FT_OK != FT_Open(1, &ftdi_handle_channel_b))
+	if (FT_OK != FT_Open(dev_id + 1, &ftdi_handle_channel_b))
 	{
-		printf("Error: FT_OPEN channel b\n");
-		exit(1);
+		printf("\nUnable to open FTDI device #%d (ussually channel B has id next to channel A)\n", dev_id + 1);
+		printf("It could also be caused by channel B open by another process.\n");
+		if (dev_id == 0) //will not try to open device number -1
+		{
+			printf("Channel A was selected as FTDI device #0, then channel B should be #1 but it failed to open.\n");
+			printf("No alternative scenario is possible, application does not support manual selecting FTDI device number for channel B.\n");
+			exit(1);
+		}
+		printf("Trying an reverse channel order.\n");
+		printf("If channel A is #%d, then channel B can be #%d.\n", dev_id, dev_id - 1);
+		if (FT_OK != FT_Open(dev_id - 1, &ftdi_handle_channel_b))
+		{
+			printf("Error: FT_OPEN channel b\n");
+			exit(1);
+		}
+		printf("FTDI device #%d used as channel B.\n\n", dev_id - 1);
 	}
 	resetFtdi();
 }

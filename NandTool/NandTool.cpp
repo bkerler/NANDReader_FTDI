@@ -35,6 +35,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 int x, r;
 	int vid=0, pid=0;
+	int dev_id = 0;
 	int test_number = ALL_TESTS;//default
 	bool err=false;
 	bool doSlow=false;
@@ -69,6 +70,8 @@ int x, r;
 //		} else if (strcmp(argv[x],"-w")==0 && x<=(argc-2)) {
 //			action=actionWrite;
 //			file=argv[++x];
+		} else if (strcmp(argv[x], "-f") == 0 && x <= (argc - 2)) {
+			dev_id = strtol(argv[++x], NULL, 0);
 		} else if (strcmp(argv[x],"-v")==0 && x<=(argc-2)) {
 			action=actionVerify;
 			file=argv[++x];
@@ -104,7 +107,7 @@ int x, r;
 	}
 
 	if (action==actionNone || err || argc==1) {
-		printf("Usage: [-i|-r file|-v file|-d|-d test_no] [-t main|oob|both] [-s]\n");
+		printf("Usage: [-i|-r file|-v file|-d|-d test_no] [-t main|oob|both] [-s] [-f ftdi_id]\n");
 		printf("  -i      - Identify chip\n");
 		printf("  -r file - Read chip to file\n");
 //		printf("  -w file - Write chip from file\n");
@@ -114,12 +117,13 @@ int x, r;
 		printf("  -u vid:pid - use different FTDI USB vid/pid. Vid and pid are in hex.\n");
 		printf("  -d      - FTDI test mode, do all tests\n");
 		printf("  -d test_no - FTDI test mode, one test\n");
+		printf("  -f ftdi_id - number of FTDI device (default 0 = first detected)\n");
 		exit(0);
 	}
 
 	if (actionDiagnostics == action)
 	{
-		FtdiDiag diag;
+		FtdiDiag diag(dev_id);
 		if (ALL_TESTS == test_number)
 			diag.startAllTests();
 		else
@@ -128,7 +132,7 @@ int x, r;
 	}
 
 	FtdiNand ftdi;
-	ftdi.open(vid,pid,doSlow);
+	ftdi.open(vid, pid, doSlow, dev_id);
 	NandChip nand(&ftdi);
 
 	if (action==actionID) {
