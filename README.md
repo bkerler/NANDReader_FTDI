@@ -18,4 +18,5 @@ with nord-data-recall fixes/improvements:
    In this case restarting the application should help as it re-initialize the FTDI chip.
    
    If using osciloscope or voltmeter ~2.0V might appear on the output pin before ~0.5Hz signal appears
-   with amplitude 3.3V. It is caused by internal pull-up resistors in the FTDI chip which does not pull up to 3.3V rail.
+   with amplitude 3.3V. It is caused by internal pull-up resistors in the FTDI chip which looks it they 
+   do not pull up to the 3.3V rail.
