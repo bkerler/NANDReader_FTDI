@@ -73,10 +73,10 @@ int FtdiDiag::startAllTests()
 int FtdiDiag::warning()
 {
 	printf("Executing test will set various combination of signal on outputs.\n");
-	printf("Make sure NAND memory is not connected.\n");
-	printf("Please prepare a tool to observe signals.\n");
-	printf("Be warned, sometimes FTDI a\n");
-	printf("Press S (capital letter) to start tests, any other to stop.\n\n");
+	printf("Make sure NAND memory is not connected. Generated signals may affect the memory state or the memory may affect testing process.\n");
+	printf("Please prepare a tool to observe signals (voltmeter, oscilloscope or just an LED) and something for making shorts.\n");
+	printf("Be warned, sometimes FTDI a \"ticklish\" may stop reponding when touched by bare hands.\n");
+	printf("Press S (capital letter) to start the tests, any other to exit.\n\n");
 	if ('S' != _getch())
 		exit(0);
 	return 0;
@@ -116,7 +116,7 @@ int FtdiDiag::startOneTest(int test_number)
 
 int FtdiDiag::executeTest(int test_number)
 {
-	printf("Starting test %d\n", test_number);
+	printf("Starting the test %d\n", test_number);
 	switch (test_number)
 	{
 		case 0:testHalfHertzOnPin(0, ftdi_handle_channel_a, "AD0 (NAND D0)");
@@ -153,7 +153,7 @@ int FtdiDiag::executeTest(int test_number)
 			break;
 		}
 	resetFtdi();
-	printf("Test %d finished\n\n", test_number);
+	printf("Test %d completed\n\n", test_number);
 	return 0;
 }
 
@@ -177,8 +177,8 @@ int FtdiDiag::testHalfHertzOnPin(int data_bit, FT_HANDLE handle, char* pin_name)
 	DWORD data_sent;
 	BYTE data_out_1[1], data_out_0[1];
 
-	printf("Test will generate ~0.5Hz signal on %s, other pins set to input\n", pin_name);
-	printf("Press ENTER key to end test\n");
+	printf("The test will generate a ~0.5Hz signal on %s, other pins configured as input.\n", pin_name);
+	printf("To end the test, press ENTER.\n");
 	if (FT_OK != FT_SetBitMode(handle, 1<<data_bit, FT_BITMODE_ASYNC_BITBANG))
 	{
 		printf("Error: FT_SetBitMode #1\n");
@@ -214,10 +214,10 @@ int FtdiDiag::testHalfHertzOnPin(int data_bit, FT_HANDLE handle, char* pin_name)
 
 int FtdiDiag::testDataRead()
 {
-	printf("Test will read data pins and present on the screen.\n");
-	printf("FTDI has internal pull-up, after start all pins should be '1's.\n");
-	printf("Short data pin and observe is specific bit is '0'\n");
-	printf("Press ENTER key to end test\n");
+	printf("The test will read data pins and display them on the screen.\n");
+	printf("The FTDI chip has internal pull-up, without any stimulation all pins should be read as '1'.\n");
+	printf("Short the data pin to ground and check if specific bit is '0' and only this bit.\n");
+	printf("To end the test, press ENTER.\n");
 	if (FT_OK != FT_SetBitMode(ftdi_handle_channel_a, 0, FT_BITMODE_ASYNC_BITBANG))
 	{
 		printf("Error: FT_SetBitMode #1\n");
@@ -254,10 +254,10 @@ int FtdiDiag::testDataRead()
 
 int FtdiDiag::testRB()
 {
-	printf("Test will read state of RB pin and present on the screen.\n");
-	printf("FTDI has internal pull-up, after start pin should be '1's.\n");
-	printf("Short RB pin and observe if it goes to '0'\n");
-	printf("Press ENTER key to end test\n");
+	printf("The test will read RB pin and display it on the screen.\n");
+	printf("The FTDI chip has internal pull-up, without any stimulation all pins should be read as '1'.\n");
+	printf("Short RB pin to ground and check if the reading goes to '0'.\n");
+	printf("To end the test, press ENTER.\n");
 	if (FT_OK != FT_SetBitMode(ftdi_handle_channel_b, 0, FT_BITMODE_ASYNC_BITBANG))
 	{
 		printf("Error: FT_SetBitMode #1\n");
@@ -288,8 +288,8 @@ int FtdiDiag::testHalfHertzOnControlPin(int data_bit, FT_HANDLE handle, char* pi
 	DWORD data_sent;
 	BYTE data_out_1[3], data_out_0[3];
 
-	printf("Test will generate ~0.5Hz signal on %s, other pins set to input\n", pin_name);
-	printf("Press ENTER key to end test\n");
+	printf("The test will generate a ~0.5Hz signal on %s, other pins configured as input.\n", pin_name);
+	printf("To end the test, press ENTER.\n");
 	if (FT_OK != FT_SetBitMode(handle, 1 << data_bit, FT_BITMODE_MPSSE))
 	{
 		printf("Error: FT_SetBitMode #1\n");
@@ -330,8 +330,8 @@ int FtdiDiag::testHalfHertzOnControlPin(int data_bit, FT_HANDLE handle, char* pi
 int FtdiDiag::testIORDY()
 {
 	int number_of_ones, number_of_zeros;
-	printf("Test will monitor state of IORDY pin for a while.\n");
-	printf("Wait for 10000 samples or press ENTER key to end test and get results.\n");
+	printf("The test will monitor state of IORDY pin for a while.\n");
+	printf("Wait for 10000 samples or press ENTER to end the test and get the results.\n");
 	if (FT_OK != FT_SetBitMode(ftdi_handle_channel_b, 0, FT_BITMODE_ASYNC_BITBANG))
 	{
 		printf("Error: FT_SetBitMode\n");
@@ -355,17 +355,17 @@ int FtdiDiag::testIORDY()
 		else
 			number_of_zeros++;
 	}
-	printf("Number of '0' samples %d\n", number_of_zeros);
-	printf("Number of '1' samples %d\n", number_of_ones);
+	printf("Number of samples with value '0' %d\n", number_of_zeros);
+	printf("Number of samples with value '1' %d\n", number_of_ones);
 	if (number_of_ones == 0) 
-		printf("No samples 'ones', looks like IORDY is connected correctly.\n");
+		printf("No samples with value '1', looks like IORDY is connected correctly.\n");
 	else
 	{
 		if (number_of_zeros == 0)
-			printf("Pull-up or short to ground not active at all.\n");
+			printf("Pull-down or short to ground not active at all.\n");
 		else
-			printf("Connectio to IORDY line is not stable.\n");
-		printf("!!!!!!!!!!!! It will make communication unstable. Fix it !!!!!!!!!!!!\n");
+			printf("The connection to the IORDY line is not stable.\n");
+		printf("!!!!!!!!!!!! It will make communication unstable. It is adviced to fix it. !!!!!!!!!!!!\n");
 	}
 	return 0;
 }
