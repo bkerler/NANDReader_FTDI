@@ -35,3 +35,9 @@ with nord-data-recall fixes/improvements:
 3. Nice progress indicator showing blocks, percentages and throughput. Progress indicator
    is refreshed every 0.5s to speed up performace and reduce terminal blinking.
    
+4. Selecting the range of pages. It is possible to select single page or continous range of pages for read
+   and verify operation (technically also for write, if it will be fully implemented). To choose one page
+   user parameter -p page_number, to select range -p first_page:last_page. If the selected last_page is
+   greater than number of pages in NAND memory, application will reduce the range with warning. If the
+   selected last_page is -1 application will silenty reduce range. Using exact same page number as
+   first_page and last_page will result in one page being read.

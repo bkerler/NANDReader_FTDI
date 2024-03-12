@@ -17,6 +17,7 @@
 
 #define ALL_TESTS	-1
 #define PROGRESS_MESSAGE_SIZE	100
+#define LAST_PAGE_OF_NAND	-1
 
 //Windows needs O_BINARY to open binary files, but the flag is undefined
 //on Unix. Hack around that. (Thanks, Shawn Hoffman)
@@ -39,11 +40,12 @@ DWORD GetTickCountDiff(DWORD offset)
 }
 
 
-int printProgressIndicator(int page_number, int pages, float throughput_ratio)
+int printProgressIndicator(long number, long pages_to_process, long physical_page, float throughput_ratio)
 {
 	char progress_message[PROGRESS_MESSAGE_SIZE];
 	int printout_strlen;
-	snprintf(progress_message, PROGRESS_MESSAGE_SIZE, "Processing page %d of %d (%1.1f%%), throughput %1.2fKiB/s", page_number, pages, 100.0f*page_number / pages, throughput_ratio);
+	snprintf(progress_message, PROGRESS_MESSAGE_SIZE, "Processing page %d of %d (%1.1f%%), physical page %d, throughput %1.2fKiB/s", 
+		number, pages_to_process, 100.0f * number / pages_to_process, physical_page, throughput_ratio);
 	printf("%s", progress_message); //"%s" to make sure % char will be not be removed
 	printout_strlen = strlen(progress_message);
 	for (int i = 0; i < printout_strlen; i++)
@@ -59,6 +61,9 @@ int x, r;
 	int test_number = ALL_TESTS;//default
 	bool err=false;
 	bool doSlow=false;
+	int startPage = 0;
+	int lastPage = LAST_PAGE_OF_NAND;
+	char *secondSubArgPtr;
 	string file="";
 	enum Action {
 		actionNone=0,
@@ -105,6 +110,20 @@ int x, r;
 		} else if (strcmp(argv[x],"-v")==0 && x<=(argc-2)) {
 			action=actionVerify;
 			file=argv[++x];
+		} else if (strcmp(argv[x], "-p") == 0 && x <= (argc - 2)) {
+			x++; //consume one argument
+			secondSubArgPtr = strchr(argv[x], ':');
+			if (NULL == secondSubArgPtr)
+			{//one page
+				startPage = strtol(argv[x], NULL, 0);
+				lastPage = strtol(argv[x], NULL, 0);
+			}
+			else
+			{//range of pages
+				*secondSubArgPtr = '\0'; //split char[] into two
+				startPage = strtol(argv[x], NULL, 0);
+				lastPage = strtol(secondSubArgPtr+1, NULL, 0);
+			}
 		} else if (strcmp(argv[x],"-u")==0 && x<=(argc-2)) {
 			action=actionVerify;
 			char *endp;
@@ -148,6 +167,8 @@ int x, r;
 		printf("  -d      - FTDI test mode, do all tests\n");
 		printf("  -d test_no - FTDI test mode, one test\n");
 		printf("  -f ftdi_id - number of FTDI device (default 0 = first detected)\n");
+		printf("  -p page - do operation on one page\n");
+		printf("  -p start:stop - do operation on range of pages\n");
 		exit(0);
 	}
 
@@ -184,24 +205,48 @@ int x, r;
 		if (access==NandChip::accessMain) size=id->getPageSize();
 		if (access==NandChip::accessOob) size=id->getOobSize();
 		if (access==NandChip::accessBoth) size=id->getOobSize()+id->getPageSize();
+		if ((startPage < 0) || (startPage >= pages))
+		{//check starting page number if below zero or over last page number
+			printf("Selected page %d out of range\n");
+			exit(1);
+		}
+		if (lastPage > pages)
+		{//if manually selected, the notify user about changing range
+			printf("Last page %d out of range, trimming end of range to %d\n", lastPage, pages);
+			lastPage = pages;
+		}
+		if (LAST_PAGE_OF_NAND == lastPage)
+		{//if user intentionally choose last page then update silently
+			lastPage = pages;
+		}
+		if (LAST_PAGE_OF_NAND > lastPage)
+		{//negative last page number
+			printf("Last page cannot be negative\n");
+			exit(1);
+		}
+		if (startPage > lastPage)
+		{//startPage bigger then last page, EQUAL is allowed
+			printf("Start page cannot be greater than last page\n");
+			exit(1);
+		}
 		char *pageBuf=new char[size];
 		char *verifyBuf=new char[size];
 		int verifyErrors=0;
 		nand.showInfo();
-		printf("%sing %i pages of %i bytes...\n", action==actionRead?"Read":"Verify", pages, id->getPageSize());
+		printf("%sing %i pages of %i bytes...\n", action==actionRead?"Read":"Verify", lastPage - startPage + 1, id->getPageSize());
 		int oldpos=0;
 		throughput_time_start = GetTickCountDiff(0);
 		throughput_bytes = 0;
 		throughput_ratio = 0.0;//questionable if it should 0 or INF when ratio is not known
 		progress_message_refresh_needed = 1; //to make sure it is printed for first time
-		for (x=0; x<pages; x++) {
+		for (long page_number=startPage; page_number<lastPage; page_number++) {
 			if (0 != progress_message_refresh_needed)
 			{
-				progress_message_len  = printProgressIndicator(x, pages, throughput_ratio);
+				progress_message_len  = printProgressIndicator(page_number - startPage, lastPage - startPage + 1, page_number, throughput_ratio);
 				progress_message_time_last_print = GetTickCountDiff(0);
 				progress_message_refresh_needed = 0;
 			}
-			nand.readPage(x, pageBuf, size, access);
+			nand.readPage(page_number, pageBuf, size, access);
 			throughput_bytes += size;
 			if (action==actionRead) {
 				r=write(f, pageBuf, size);
@@ -218,13 +263,14 @@ int x, r;
 				for (int y=0; y<size; y++) {
 					if (verifyBuf[y]!=pageBuf[y]) {
 						verifyErrors++;
-						snprintf(error_message, PROGRESS_MESSAGE_SIZE, "Verify error: Page %i, byte %i: file 0x%02hhX flash 0x%02hhX", x, y, verifyBuf[y], pageBuf[y]);
+						snprintf(error_message, PROGRESS_MESSAGE_SIZE, "Verify error: Page %i, byte %i: file 0x%02hhX flash 0x%02hhX", page_number, y, verifyBuf[y], pageBuf[y]);
 						//reusing progress_message buffer
 						printf("%s", error_message);
 						if (progress_message_len > strlen(error_message)) //if previous status message was longer than error message, which likely to happend
 							for (int i = 0; i < progress_message_len - strlen(error_message); i++)
 								printf(" "); //overwrite the protrunding characters with spaces
 						printf("\n");//new line
+						progress_message_len = printProgressIndicator(page_number - startPage, lastPage - startPage + 1, page_number, throughput_ratio);//refresh status after error
 					}
 				}
 			}
@@ -232,13 +278,14 @@ int x, r;
 			if (GetTickCountDiff(progress_message_time_last_print) > PROGRESS_MESSAGE_REFRESH_TIME_500MS)
 				progress_message_refresh_needed = 1;
 		}
-		printProgressIndicator(pages, pages, throughput_ratio); //print summary at the end
-		if (action==actionVerify) {
-			printf("Verify: %i bytes differ between NAND and file.\n", verifyErrors);
-		}
+		printProgressIndicator(lastPage-startPage + 1, lastPage - startPage + 1, lastPage, throughput_ratio); //print summary at the end
+		if (action == actionVerify)
+			printf("\nVerify: %i bytes differ between NAND and file.\n", verifyErrors);
+		else
+			printf("\n");//actionRead or actionWrite
 	}
 	
-	printf("\nAll done.\n"); 
+	printf("All done.\n"); 
 	return 0;
 }
 
