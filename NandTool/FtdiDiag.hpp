@@ -9,7 +9,7 @@ using namespace std;
 
 class FtdiDiag {
 public:
-	FtdiDiag();
+	FtdiDiag(int dev_id);
 	~FtdiDiag();
 	int startAllTests();
 	int startOneTest(int test_number);

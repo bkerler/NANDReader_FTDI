@@ -9,7 +9,7 @@ class FtdiNand {
 public:
 	FtdiNand();
 	~FtdiNand();
-	int open(int vid, int pid, bool doslow);
+	int open(int vid, int pid, bool doslow, int dev_id);
 	int sendCmd(char cmd);
 	int sendAddr(long long addr, int noBytes);
 	int writeData(char *data, int count);

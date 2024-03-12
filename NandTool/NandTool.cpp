@@ -16,6 +16,7 @@
 #include "NandChip.hpp"
 
 #define ALL_TESTS	-1
+#define PROGRESS_MESSAGE_SIZE	100
 
 //Windows needs O_BINARY to open binary files, but the flag is undefined
 //on Unix. Hack around that. (Thanks, Shawn Hoffman)
@@ -31,10 +32,30 @@ void gotoxy(int x, int y)
   SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
+DWORD GetTickCountDiff(DWORD offset)
+{
+	//GetTickCount() could roll-over but binary math should do the magic and return correct value
+	return GetTickCount() - offset;
+}
+
+
+int printProgressIndicator(int page_number, int pages, float throughput_ratio)
+{
+	char progress_message[PROGRESS_MESSAGE_SIZE];
+	int printout_strlen;
+	snprintf(progress_message, PROGRESS_MESSAGE_SIZE, "Processing page %d of %d (%1.1f%%), throughput %1.2fKiB/s", page_number, pages, 100.0f*page_number / pages, throughput_ratio);
+	printf("%s", progress_message); //"%s" to make sure % char will be not be removed
+	printout_strlen = strlen(progress_message);
+	for (int i = 0; i < printout_strlen; i++)
+		printf("\b");
+	return printout_strlen;
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 int x, r;
 	int vid=0, pid=0;
+	int dev_id = 0;
 	int test_number = ALL_TESTS;//default
 	bool err=false;
 	bool doSlow=false;
@@ -47,6 +68,16 @@ int x, r;
 		actionVerify,
 		actionDiagnostics
 	};
+
+#define PROGRESS_MESSAGE_SIZE	100
+	char error_message[PROGRESS_MESSAGE_SIZE];
+	int progress_message_len;
+	int progress_message_refresh_needed;
+	DWORD progress_message_time_last_print;
+#define PROGRESS_MESSAGE_REFRESH_TIME_500MS	500
+	float throughput_ratio;
+	DWORD throughput_time_start;
+	float throughput_bytes;
 
 	printf("FT2232H-based NAND reader\n");
 	//Parse command line options
@@ -69,6 +100,8 @@ int x, r;
 //		} else if (strcmp(argv[x],"-w")==0 && x<=(argc-2)) {
 //			action=actionWrite;
 //			file=argv[++x];
+		} else if (strcmp(argv[x], "-f") == 0 && x <= (argc - 2)) {
+			dev_id = strtol(argv[++x], NULL, 0);
 		} else if (strcmp(argv[x],"-v")==0 && x<=(argc-2)) {
 			action=actionVerify;
 			file=argv[++x];
@@ -104,7 +137,7 @@ int x, r;
 	}
 
 	if (action==actionNone || err || argc==1) {
-		printf("Usage: [-i|-r file|-v file|-d|-d test_no] [-t main|oob|both] [-s]\n");
+		printf("Usage: [-i|-r file|-v file|-d|-d test_no] [-t main|oob|both] [-s] [-f ftdi_id]\n");
 		printf("  -i      - Identify chip\n");
 		printf("  -r file - Read chip to file\n");
 //		printf("  -w file - Write chip from file\n");
@@ -114,12 +147,13 @@ int x, r;
 		printf("  -u vid:pid - use different FTDI USB vid/pid. Vid and pid are in hex.\n");
 		printf("  -d      - FTDI test mode, do all tests\n");
 		printf("  -d test_no - FTDI test mode, one test\n");
+		printf("  -f ftdi_id - number of FTDI device (default 0 = first detected)\n");
 		exit(0);
 	}
 
 	if (actionDiagnostics == action)
 	{
-		FtdiDiag diag;
+		FtdiDiag diag(dev_id);
 		if (ALL_TESTS == test_number)
 			diag.startAllTests();
 		else
@@ -128,7 +162,7 @@ int x, r;
 	}
 
 	FtdiNand ftdi;
-	ftdi.open(vid,pid,doSlow);
+	ftdi.open(vid, pid, doSlow, dev_id);
 	NandChip nand(&ftdi);
 
 	if (action==actionID) {
@@ -156,8 +190,19 @@ int x, r;
 		nand.showInfo();
 		printf("%sing %i pages of %i bytes...\n", action==actionRead?"Read":"Verify", pages, id->getPageSize());
 		int oldpos=0;
+		throughput_time_start = GetTickCountDiff(0);
+		throughput_bytes = 0;
+		throughput_ratio = 0.0;//questionable if it should 0 or INF when ratio is not known
+		progress_message_refresh_needed = 1; //to make sure it is printed for first time
 		for (x=0; x<pages; x++) {
+			if (0 != progress_message_refresh_needed)
+			{
+				progress_message_len  = printProgressIndicator(x, pages, throughput_ratio);
+				progress_message_time_last_print = GetTickCountDiff(0);
+				progress_message_refresh_needed = 0;
+			}
 			nand.readPage(x, pageBuf, size, access);
+			throughput_bytes += size;
 			if (action==actionRead) {
 				r=write(f, pageBuf, size);
 				if (r!=size) {
@@ -173,23 +218,27 @@ int x, r;
 				for (int y=0; y<size; y++) {
 					if (verifyBuf[y]!=pageBuf[y]) {
 						verifyErrors++;
-						printf("Verify error: Page %i, byte %i: file 0x%02hhX flash 0x%02hhX\n", x, y, verifyBuf[y], pageBuf[y]);
+						snprintf(error_message, PROGRESS_MESSAGE_SIZE, "Verify error: Page %i, byte %i: file 0x%02hhX flash 0x%02hhX", x, y, verifyBuf[y], pageBuf[y]);
+						//reusing progress_message buffer
+						printf("%s", error_message);
+						if (progress_message_len > strlen(error_message)) //if previous status message was longer than error message, which likely to happend
+							for (int i = 0; i < progress_message_len - strlen(error_message); i++)
+								printf(" "); //overwrite the protrunding characters with spaces
+						printf("\n");//new line
 					}
 				}
 			}
-			int pos=((float)x/(float)pages*(float)100);
-			if (pos>oldpos) {
-				printf("%i/%i\n", x, pages);
-				gotoxy(0,7);
-				oldpos=pos;
-			}
+			throughput_ratio = 1000.0f*throughput_bytes / (GetTickCountDiff(throughput_time_start)) / 1024;
+			if (GetTickCountDiff(progress_message_time_last_print) > PROGRESS_MESSAGE_REFRESH_TIME_500MS)
+				progress_message_refresh_needed = 1;
 		}
+		printProgressIndicator(pages, pages, throughput_ratio); //print summary at the end
 		if (action==actionVerify) {
 			printf("Verify: %i bytes differ between NAND and file.\n", verifyErrors);
 		}
 	}
 	
-	printf("All done.\n"); 
+	printf("\nAll done.\n"); 
 	return 0;
 }
 
