@@ -31,3 +31,7 @@ with nord-data-recall fixes/improvements:
    and by default assumes channel B is after channel A. If opening channel B fails, application will
    try also alternative order (channel B before channel A). There is no option to manually select specific
    FTDI device for channel B during diagnostic mode.
+   
+3. Nice progress indicator showing blocks, percentages and throughput. Progress indicator
+   is refreshed every 0.5s to speed up performace and reduce terminal blinking.
+   

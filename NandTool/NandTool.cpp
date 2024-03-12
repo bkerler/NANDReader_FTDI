@@ -31,6 +31,26 @@ void gotoxy(int x, int y)
   SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
+DWORD GetTickCountDiff(DWORD offset)
+{
+	//GetTickCount() could roll-over but binary math should do the magic and return correct value
+	return GetTickCount() - offset;
+}
+
+
+#define PROGRESS_MESSAGE_SIZE	100
+int printProgressIndicator(int page_number, int pages, float throughput_ratio)
+{
+	char progress_message[PROGRESS_MESSAGE_SIZE];
+	int printout_strlen;
+	snprintf(progress_message, PROGRESS_MESSAGE_SIZE, "Processing page %d of %d (%1.1f%%), throughput %1.2fKiB/s", page_number, pages, 100.0f*page_number / pages, throughput_ratio);
+	printf("%s", progress_message); //"%s" to make sure % char will be not be removed
+	printout_strlen = strlen(progress_message);
+	for (int i = 0; i < printout_strlen; i++)
+		printf("\b");
+	return printout_strlen;
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 int x, r;
@@ -48,6 +68,16 @@ int x, r;
 		actionVerify,
 		actionDiagnostics
 	};
+
+#define PROGRESS_MESSAGE_SIZE	100
+	char progress_message[PROGRESS_MESSAGE_SIZE];
+	int progress_message_len;
+	int progress_message_refresh_needed;
+	DWORD progress_message_time_last_print;
+#define PROGRESS_MESSAGE_REFRESH_TIME_500MS	500
+	float throughput_ratio;
+	DWORD throughput_time_start;
+	float throughput_bytes;
 
 	printf("FT2232H-based NAND reader\n");
 	//Parse command line options
@@ -160,8 +190,19 @@ int x, r;
 		nand.showInfo();
 		printf("%sing %i pages of %i bytes...\n", action==actionRead?"Read":"Verify", pages, id->getPageSize());
 		int oldpos=0;
+		throughput_time_start = GetTickCountDiff(0);
+		throughput_bytes = 0;
+		throughput_ratio = 0.0;//questionable if it should 0 or INF when ratio is not known
+		progress_message_refresh_needed = 1; //to make sure it is printed for first time
 		for (x=0; x<pages; x++) {
+			if (0 != progress_message_refresh_needed)
+			{
+				progress_message_len  = printProgressIndicator(x, pages, throughput_ratio);
+				progress_message_time_last_print = GetTickCountDiff(0);
+				progress_message_refresh_needed = 0;
+			}
 			nand.readPage(x, pageBuf, size, access);
+			throughput_bytes += size;
 			if (action==actionRead) {
 				r=write(f, pageBuf, size);
 				if (r!=size) {
@@ -177,23 +218,35 @@ int x, r;
 				for (int y=0; y<size; y++) {
 					if (verifyBuf[y]!=pageBuf[y]) {
 						verifyErrors++;
-						printf("Verify error: Page %i, byte %i: file 0x%02hhX flash 0x%02hhX\n", x, y, verifyBuf[y], pageBuf[y]);
+						snprintf(progress_message, PROGRESS_MESSAGE_SIZE, "Verify error: Page %i, byte %i: file 0x%02hhX flash 0x%02hhX", x, y, verifyBuf[y], pageBuf[y]);
+						//reusing progress_message buffer
+						printf("%s", progress_message);
+						if (progress_message_len > strlen(progress_message)) //if status message was longer than error message, which likely to happend
+							for (int i = 0; i < progress_message_len - strlen(progress_message); i++)
+								printf(" "); //overwrite the protrunding characters with spaces
+						printf("\n");//new line
 					}
 				}
 			}
+			throughput_ratio = 1000.0f*throughput_bytes / (GetTickCountDiff(throughput_time_start)) / 1024;
+			if (GetTickCountDiff(progress_message_time_last_print) > PROGRESS_MESSAGE_REFRESH_TIME_500MS)
+				progress_message_refresh_needed = 1;
+#ifdef OLD_STATUS
 			int pos=((float)x/(float)pages*(float)100);
 			if (pos>oldpos) {
 				printf("%i/%i\n", x, pages);
 				gotoxy(0,7);
 				oldpos=pos;
 			}
+#endif
 		}
+		printProgressIndicator(pages, pages, throughput_ratio); //print summary at the end
 		if (action==actionVerify) {
 			printf("Verify: %i bytes differ between NAND and file.\n", verifyErrors);
 		}
 	}
 	
-	printf("All done.\n"); 
+	printf("\nAll done.\n"); 
 	return 0;
 }
 
