@@ -63,6 +63,7 @@ int x, r;
 	bool doSlow=false;
 	int startPage = 0;
 	int lastPage = LAST_PAGE_OF_NAND;
+	int sizeOfChunks = 0;
 	char *secondSubArgPtr;
 	string file="";
 	enum Action {
@@ -110,6 +111,8 @@ int x, r;
 		} else if (strcmp(argv[x],"-v")==0 && x<=(argc-2)) {
 			action=actionVerify;
 			file=argv[++x];
+		} else if (strcmp(argv[x], "-c") == 0 && x <= (argc - 2)) {
+			sizeOfChunks = strtol(argv[++x], NULL, 0);
 		} else if (strcmp(argv[x], "-p") == 0 && x <= (argc - 2)) {
 			x++; //consume one argument
 			secondSubArgPtr = strchr(argv[x], ':');
@@ -169,6 +172,7 @@ int x, r;
 		printf("  -f ftdi_id - number of FTDI device (default 0 = first detected)\n");
 		printf("  -p page - do operation on one page\n");
 		printf("  -p start:stop - do operation on range of pages\n");
+		printf("  -c size - size of data chunks processed at one time (default 0 = infinity)\n");
 		exit(0);
 	}
 
@@ -183,7 +187,7 @@ int x, r;
 	}
 
 	FtdiNand ftdi;
-	ftdi.open(vid, pid, doSlow, dev_id);
+	ftdi.open(vid, pid, doSlow, dev_id, sizeOfChunks);
 	NandChip nand(&ftdi);
 
 	if (action==actionID) {

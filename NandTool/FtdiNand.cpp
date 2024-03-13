@@ -74,51 +74,41 @@ int FtdiNand::error(const char *err) {
 }
 
 //Read bytes from the nand, with the cl and al lines set as indicated.
-FT_STATUS FtdiNand::nandRead(int cl, int al, char *buf, int count) {
-	unsigned char *cmds=new unsigned char[count*2+2];
-	unsigned char *ftdata=new unsigned char[count*2];
-	int x, i;
-	FT_STATUS re;
-	i=0;
-	//Construct read commands. First one sets the cl and al lines too, rest just reads.
-	for (x=0; x<count; x++) {
-		if (x==0) {
-			cmds[i++]=READ_EXTENDED;
-			cmds[i++]=(cl?ADR_CL:0)|(al?ADR_AL:0);
-			cmds[i++]=0;
-		} else {
-			cmds[i++]=READ_SHORT;
-			cmds[i++]=0;
+int FtdiNand::nandRead(int cl, int al, char *buf, int count) {
+	unsigned char *ftdata = new unsigned char[count * 2];
+	int total_read_bytes;
+	int x;
+	int amount_to_read;
+
+	ftdiSendReadCommandTriggerLong();
+	total_read_bytes = 0;
+	while (0 != count)
+	{
+		if ((count >= m_sizeOfChunk) && (0 != m_sizeOfChunk))
+			amount_to_read = m_sizeOfChunk; //read one chunk
+		else
+			amount_to_read = count; //read last smaller chunk or everything in one chunk
+		ftdiSendReadCommands(cl, al, amount_to_read);
+		if (m_slowAccess)
+		{
+			//Div by 5 mode makes the ftdi-chip return all databytes double. Compensate for that.
+			ftdiReadBytes(ftdata, amount_to_read * 2);
+			for (x = 0; x < amount_to_read; x++)
+				buf[total_read_bytes + x] = ftdata[x * 2];
 		}
-	}
-	cmds[i++]=SEND_IMMEDIATE;
-
-//	printf("Cmd:\n");
-//	for (x=0; x<i; x++) printf("%02hhx %s", cmds[x], ((x&15)==15)?"\n":"");
-//	printf("\n\n");
-
-	DWORD written=0;
-	DWORD read=0;
-	if (FT_Write(m_ftdi, cmds, i,&written)!=FT_OK) return error("writing cmd");
-	if (m_slowAccess) {
-		//Div by 5 mode makes the ftdi-chip return all databytes double. Compensate for that.
-		re=FT_Read(m_ftdi, ftdata, count * 2, &read);
-		for (x=0; x<count; x++) buf[x]=ftdata[x*2];
-		read/=2;
-	} else {
-		re=FT_Read(m_ftdi, ftdata, count,&read);
-		for (x=0; x<count; x++) buf[x]=ftdata[x];
+		else
+		{
+			ftdiReadBytes(ftdata, amount_to_read);
+			for (x = 0; x < amount_to_read; x++)
+				buf[total_read_bytes + x] = ftdata[x];
+		}
+		total_read_bytes += amount_to_read;
+		count -= amount_to_read;
 	}
 
-	if (re!=FT_OK) return error("reading data");
-	if (read<count) return error("short read");
-//	printf("%i bytes read.\n", ret);
-
-	delete[] cmds;
 	delete[] ftdata;
-	return read;
+	return total_read_bytes;
 }
-
 //Write bytes to the nand, with al/cl set as indicated.
 int FtdiNand::nandWrite(int cl, int al, char *buf, int count) {
 	unsigned char *cmds=new unsigned char[count*3+1];
@@ -152,11 +142,12 @@ FtdiNand::FtdiNand() {
 }
 
 //Try to find the ftdi chip and open it.
-int FtdiNand::open(int vid, int pid, bool doslow, int dev_id) {
+int FtdiNand::open(int vid, int pid, bool doslow, int dev_id, int size_of_chunks) {
 	unsigned char slow=DIS_DIV_5;
 	DWORD written;
 	if (doslow) slow=EN_DIV_5;
 	m_slowAccess=doslow;
+	m_sizeOfChunk = size_of_chunks;
 	//If vid/pid is zero, use default FT2232H vid/pid.
 	if (vid==0) vid=0x0403;
 	if (pid==0) pid=0x6010;
@@ -216,6 +207,51 @@ int FtdiNand::writeData(char *data, int count) {
 int FtdiNand::readData(char *data, int count) {
 	return nandRead(0, 0, data, count);
 }
+
+void FtdiNand::ftdiSendReadCommandTriggerLong() {
+	m_sendLongCommand = true;
+}
+
+void FtdiNand::ftdiSendReadCommands(int cl, int al, int count) {
+	unsigned char *cmd_buffer = new unsigned char[count * 2 + 1 + 1];
+	int buf_ptr = 0;
+	DWORD written;
+	FT_STATUS result;
+
+	for (int i = 0; i<count; i++)
+	{
+		if (m_sendLongCommand)
+		{
+			m_sendLongCommand = false;
+			cmd_buffer[buf_ptr++] = READ_EXTENDED;
+			cmd_buffer[buf_ptr++] = (cl ? ADR_CL : 0) | (al ? ADR_AL : 0);
+			cmd_buffer[buf_ptr++] = 0;
+		}
+		else
+		{
+			cmd_buffer[buf_ptr++] = READ_SHORT;
+			cmd_buffer[buf_ptr++] = 0;
+		}
+	}
+	cmd_buffer[buf_ptr++] = SEND_IMMEDIATE;
+
+	result = FT_Write(m_ftdi, cmd_buffer, buf_ptr, &written); //use buf_ptr as number of bytes
+	if (FT_OK != result)
+		error("FT_Write failed");
+	if (buf_ptr != written)
+		error("FT_Write haven't written all bytes");
+}
+
+void FtdiNand::ftdiReadBytes(unsigned char *buffer, int lenght) {
+	DWORD read;
+	FT_STATUS result;
+	result = FT_Read(m_ftdi, buffer, lenght, &read);
+	if (FT_OK != result)
+		error("FT_Read failed");
+	if (lenght != read)
+		error("FT_Read returned less than expected bytes");
+}
+
 
 //Timeout in ms. Due to use of usleep(), not exact, but ballpark.
 #define TIMEOUT_MSEC 100

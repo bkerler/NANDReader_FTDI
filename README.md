@@ -41,3 +41,16 @@ with nord-data-recall fixes/improvements:
    greater than number of pages in NAND memory, application will reduce the range with warning. If the
    selected last_page is -1 application will silenty reduce range. Using exact same page number as
    first_page and last_page will result in one page being read.
+   
+5. Handling communication in smaller chunks with configurable size. On some computers the FTDI chip has
+   tendency to restart upon reception of large burst of data. From application perspective this could be
+   observed as random hang or return with code 1167 during FT_Write. Suspected root cause is USB
+   communication errors when sending large continuous burst. The -c parameter gives ability to configure
+   size of single chunk. For example the application to read the page size 2048 bytes, sends 4098 bytes
+   (1+2*2048+1), then reads 2048 bytes (FTDI@60MHz). When small chunks are used, application will perform
+   many smaller write and read operations per page. For example -c 8, will result in transferring page in
+   8 byte chunks, which means sending 18 bytes (1+2*8+1), then receiving 8 bytes, and repeating to get
+   entire page. Using very small chunks brings a large throughtput penalty, but allows the application to
+   be used on some computers. On some computers using chunks size 256 bytes resulted in a 5% increase in 
+   overal througput. Using chunks larger than the page size does no effect, no more than one page can be
+   transferred in one chunk.
