@@ -50,10 +50,12 @@ NandChip::~NandChip() {
 
 void NandChip::showInfo() {
 	//Dump some info.
+	unsigned char *id_bytes = m_id->getID();
 	printf("Nand type: %s\n", m_id->getDesc().c_str());
 	printf("Manufacturer: %s\n", m_id->getManufacturer().c_str());
-	printf("ID: %02X\n", m_id->getID()[1]);
-	printf("Chip: %02X\n", m_id->getID()[2]);
+	printf("ID: %02X\n", id_bytes[1]);
+	printf("Chip: %02X\n", id_bytes[2]);
+	printf("Raw ID bytes: %02X %02X %02X %02X %02X (%02X)\n", id_bytes[0], id_bytes[1], id_bytes[2], id_bytes[3], id_bytes[4], id_bytes[5]);
 	printf("Size: %iMB, pagesize %i bytes, OOB size %i bytes\n", m_id->getSizeMB(), m_id->getPageSize(), m_id->getOobSize());
 	printf("%s page, needs %i addr bytes.\n", m_id->isLargePage()?"Large":"Small",  m_id->getAddrByteCount());
 }

@@ -54,3 +54,5 @@ with nord-data-recall fixes/improvements:
    be used on some computers. On some computers using chunks size 256 bytes resulted in a 5% increase in 
    overal througput. Using chunks larger than the page size does no effect, no more than one page can be
    transferred in one chunk.
+   
+6. Printing raw ID bytes read from NAND memory.
