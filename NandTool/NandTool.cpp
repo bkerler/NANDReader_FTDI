@@ -44,7 +44,7 @@ int printProgressIndicator(long number, long pages_to_process, long physical_pag
 {
 	char progress_message[PROGRESS_MESSAGE_SIZE];
 	int printout_strlen;
-	snprintf(progress_message, PROGRESS_MESSAGE_SIZE, "Processing page %d of %d (%1.1f%%), physical page %d, throughput %1.2fKiB/s", 
+	snprintf(progress_message, PROGRESS_MESSAGE_SIZE, "Processing page %d of %d (%1.1f%%), phys. page %d, at %1.2fKiB/s", 
 		number, pages_to_process, 100.0f * number / pages_to_process, physical_page, throughput_ratio);
 	printf("%s", progress_message); //"%s" to make sure % char will be not be removed
 	printout_strlen = strlen(progress_message);
