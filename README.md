@@ -1,16 +1,19 @@
-8-Bit Universal Nand reader for FTDI2323H Breakout boards
+Universal Nand reader for 8 bit NAND memories using FTDI2323H.  
 
-Based on http://spritesmods.com/?art=ftdinand code and ideas
+Based on http://spritesmods.com/?art=ftdinand code and ideas.  
 
-Heavily modified to support writing nand, universally detecting and dumping nands
+Heavily modified to support universally detecting and dumping nands
 using Linux Kernel source code additions.
+
+> [!IMPORTANT]
+> **Write support disabled**
 
 (c) 2014 B. Kerler <info AT revskills.de>
 
 with nord-data-recall fixes/improvements:
 1. Diagnostic function that allows to perform hardware test. It is available by using -d parameter.
    There are two ways to testing. The one is to execute all tests one by one, to accomplish that
-   use only the -d parameter. Another way is to do specific single test adding number to -d parameter. 
+   use only the -d parameter. Another way is to do specific single test adding number to -d parameter.
    For example -d 15 to execute test of IORDY pin.
    
    Please be warned that FTDI chip may restart or react abnormally when pins are touched with bare hands.
@@ -18,7 +21,7 @@ with nord-data-recall fixes/improvements:
    In this case restarting the application should help as it re-initialize the FTDI chip.
    
    If using osciloscope or voltmeter ~2.0V might appear on the output pin before ~0.5Hz signal appears
-   with amplitude 3.3V. It is caused by internal pull-up resistors in the FTDI chip which looks it they 
+   with amplitude 3.3V. It is caused by internal pull-up resistors in the FTDI chip which looks it they
    do not pull up to the 3.3V rail.
    
 2. Selecting specific FTDI device. Raise condition may occur when the FTDI device is plugged for first
@@ -47,17 +50,18 @@ with nord-data-recall fixes/improvements:
    observed as random hang or return with code 1167 during FT_Write. Suspected root cause is USB
    communication errors when sending large continuous burst. The -c parameter gives ability to configure
    size of single chunk. For example the application to read the page size 2048 bytes, sends 4098 bytes
-   (1+2*2048+1), then reads 2048 bytes (FTDI@60MHz). When small chunks are used, application will perform
+   (1+2x2048+1), then reads 2048 bytes (FTDI@60MHz). When small chunks are used, application will perform
    many smaller write and read operations per page. For example -c 8, will result in transferring page in
-   8 byte chunks, which means sending 18 bytes (1+2*8+1), then receiving 8 bytes, and repeating to get
+   8 byte chunks, which means sending 18 bytes (1+2x8+1), then receiving 8 bytes, and repeating to get
    entire page. Using very small chunks brings a large throughtput penalty, but allows the application to
-   be used on some computers. On some computers using chunks size 256 bytes resulted in a 5% increase in 
+   be used on some computers. On some computers using chunks size 256 bytes resulted in a 5% increase in
    overal througput. Using chunks larger than the page size does no effect, no more than one page can be
    transferred in one chunk.
    
 6. Printing raw ID bytes read from NAND memory.
    
-7. Added support for ONFI data. The ONFI section can be read to a file and verified with the file with
-   option -t onfi. Also can be presented in human-readable form using the -i (identify chip) command.
-   An existing file containing ONFI information, even NAND Reader, can be presented in human-readable
-   form using using command -show_onfi filename.
+7. Added support for ONFI data. The ONFI section can be read to a file and verified with the file using
+   legacy commands -r and -v with selecting region onfi (option -t onfi). Also can be presented in
+   human-readable form using the -i (identify chip) command. Alternatively an existing file containing
+   ONFI information can be presented in human-readable form, even NAND Reader, using using command
+   -show_onfi filename.
