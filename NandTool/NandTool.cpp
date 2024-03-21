@@ -25,20 +25,11 @@
 #define O_BINARY 0
 #endif 
 
-void gotoxy(int x, int y)
-{
-  COORD coord;
-  coord.X = x;
-  coord.Y = y;
-  SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-}
-
 DWORD GetTickCountDiff(DWORD offset)
 {
 	//GetTickCount() could roll-over but binary math should do the magic and return correct value
 	return GetTickCount() - offset;
 }
-
 
 int printProgressIndicator(long number, long pages_to_process, long physical_page, float throughput_ratio)
 {
@@ -55,7 +46,7 @@ int printProgressIndicator(long number, long pages_to_process, long physical_pag
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-int x, r;
+	int x, r;
 	int vid=0, pid=0;
 	int dev_id = 0;
 	int test_number = ALL_TESTS;//default
@@ -238,15 +229,14 @@ int x, r;
 		int verifyErrors=0;
 		nand.showInfo();
 		printf("%sing %i pages of %i bytes...\n", action==actionRead?"Read":"Verify", lastPage - startPage + 1, id->getPageSize());
-		int oldpos=0;
 		throughput_time_start = GetTickCountDiff(0);
 		throughput_bytes = 0;
 		throughput_ratio = 0.0;//questionable if it should 0 or INF when ratio is not known
 		progress_message_refresh_needed = 1; //to make sure it is printed for first time
-		for (long page_number=startPage; page_number<lastPage; page_number++) {
+		for (long page_number=startPage; page_number <= lastPage; page_number++) {
 			if (0 != progress_message_refresh_needed)
 			{
-				progress_message_len  = printProgressIndicator(page_number - startPage, lastPage - startPage + 1, page_number, throughput_ratio);
+				progress_message_len = printProgressIndicator(page_number - startPage, lastPage - startPage + 1, page_number, throughput_ratio);
 				progress_message_time_last_print = GetTickCountDiff(0);
 				progress_message_refresh_needed = 0;
 			}

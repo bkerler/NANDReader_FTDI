@@ -85,7 +85,6 @@ int NandChip::writePage(int page, char *buff, int count, NandChip::AccessType ac
 	return r;
 }
 
-
 NandID *NandChip::getIdPtr() {
 	return m_id;
 }

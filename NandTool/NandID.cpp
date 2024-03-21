@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "NandID.hpp"
 #include <stdio.h>
 #include <stdlib.h>
@@ -126,7 +125,6 @@ static int nand_id_has_period(unsigned char *id_data, int arrlen, int period)
 				return 0;
 	return 1;
 }
-
 
 static int nand_id_len(unsigned char *id_data, int arrlen)
 {
@@ -366,6 +364,3 @@ int NandID::getAddrByteCount() {
 	}
 	return cyc;*/
 }
-
-
-
