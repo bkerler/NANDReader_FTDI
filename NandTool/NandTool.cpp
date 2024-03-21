@@ -15,6 +15,7 @@
 #include "FtdiDiag.hpp"
 #include "NandChip.hpp"
 #include "onfi.h"
+#include "NandOnfi.hpp"
 
 #define ALL_TESTS	-1
 #define PROGRESS_MESSAGE_SIZE	100
@@ -64,7 +65,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		actionRead,
 		actionWrite,
 		actionVerify,
-		actionDiagnostics
+		actionDiagnostics,
+		actionPrintOnfi
 	};
 
 #define PROGRESS_MESSAGE_SIZE	100
@@ -92,9 +94,12 @@ int _tmain(int argc, _TCHAR* argv[])
 						test_number = strtol(argv[++x], NULL, 0);
 					}
 			}
-		else if (strcmp(argv[x],"-r")==0 && x<=(argc-2)) {
-			action=actionRead;
-			file=argv[++x];
+		else if (strcmp(argv[x], "-r") == 0 && x <= (argc - 2)) {
+			action = actionRead;
+			file = argv[++x];
+		} else if (strcmp(argv[x], "-show_onfi") == 0 && x <= (argc - 2)) {
+			action = actionPrintOnfi;
+			file = argv[++x];
 //		} else if (strcmp(argv[x],"-w")==0 && x<=(argc-2)) {
 //			action=actionWrite;
 //			file=argv[++x];
@@ -153,7 +158,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	if (action==actionNone || err || argc==1) {
-		printf("Usage: [-i|-r file|-v file|-d|-d test_no] [-t main|oob|both|onfi] [-s] [-f ftdi_id]\n");
+		printf("Usage: [-i|-r file|-v file|-d|-d test_no|-show_onfi file] [-t main|oob|both|onfi] [-s] [-f ftdi_id]\n");
 		printf("  -i      - Identify chip\n");
 		printf("  -r file - Read chip to file\n");
 //		printf("  -w file - Write chip from file\n");
@@ -167,6 +172,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("  -p page - do operation on one page\n");
 		printf("  -p start:stop - do operation on range of pages\n");
 		printf("  -c size - size of data chunks processed at one time (default 0 = infinity)\n");
+		printf("  -show_onfi file - print ONFI section from file\n");
 		exit(0);
 	}
 
@@ -177,6 +183,24 @@ int _tmain(int argc, _TCHAR* argv[])
 			diag.startAllTests();
 		else
 			diag.startOneTest(test_number);
+		return 0;
+	}
+
+	if (actionPrintOnfi == action)
+	{
+		int file_handle;
+		char onfi_buf[ONFI_SIZE];
+		file_handle = open(file.c_str(), O_RDONLY | O_BINARY, 0644);
+		if (file_handle < 0) {
+			perror(file.c_str());
+			exit(1);
+		}
+		r = read(file_handle, onfi_buf, ONFI_SIZE);
+		if (ONFI_SIZE != r)
+			perror("file to short");
+		close(file_handle);
+		NandOnfi *onfi = new NandOnfi(onfi_buf);
+		onfi->showOnfi();
 		return 0;
 	}
 
