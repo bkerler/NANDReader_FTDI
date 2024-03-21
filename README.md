@@ -56,3 +56,7 @@ with nord-data-recall fixes/improvements:
    transferred in one chunk.
    
 6. Printing raw ID bytes read from NAND memory.
+   
+7. Added support for ONFI data. The ONFI section can be read to a file and verified with the file with
+   option -t onfi. Also can be presented in human-readable form using the -i (identify chip) command.
+   

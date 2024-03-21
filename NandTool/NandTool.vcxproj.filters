@@ -48,6 +48,12 @@
     <ClInclude Include="FtdiDiag.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="NandOnfi.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="onfi.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -75,6 +81,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="FtdiDiag.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="NandOnfi.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

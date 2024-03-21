@@ -36,6 +36,7 @@ NandChip::NandChip(FtdiNand *fn) {
 	m_fn->sendAddr(0, 1);
 	m_fn->readData((char *)id, 8);
 	m_id=new NandID(fn,id);
+	m_onfi = new NandOnfi(fn);
 	//We use a different data object for large- and small-page devices
 	if (m_id->isLargePage()) {
 		m_data=new NandDataLP(fn, m_id);
@@ -48,7 +49,8 @@ NandChip::~NandChip() {
 	delete m_id;
 }
 
-void NandChip::showInfo() {
+void NandChip::showCommon()
+{
 	//Dump some info.
 	unsigned char *id_bytes = m_id->getID();
 	printf("Nand type: %s\n", m_id->getDesc().c_str());
@@ -60,17 +62,30 @@ void NandChip::showInfo() {
 	printf("%s page, needs %i addr bytes.\n", m_id->isLargePage()?"Large":"Small",  m_id->getAddrByteCount());
 }
 
+void NandChip::showInfo() {
+	showCommon();
+	if (m_onfi->hasOnfi())
+		printf("Nand has ONFI structure\n");
+}
+
+void NandChip::showInfoLong() {
+	showCommon();
+	if (m_onfi->hasOnfi())
+		m_onfi->showOnfi();
+}
+
 int NandChip::readPage(int page, char *buff, int count, NandChip::AccessType access) {
 	int r=0;
-	//Uses the data-object to read the main and/or OOB memory.
-	if (access&NandChip::accessMain) {
+	if ((NandChip::accessMain == access) || (NandChip::accessBoth == access)) {
 		r=m_data->readPage(page, buff, count);
 		count-=r;
 	}
-	if (access&NandChip::accessOob) {
+	if ((NandChip::accessOob == access) || (NandChip::accessBoth == access)) {
 		r=m_data->readOob(page, &buff[r], count);
 		count-=r;
 	}
+	if (NandChip::accessOnfi == access)
+		r = m_onfi->readRaw(buff, count);
 	return r;
 }
 
@@ -87,4 +102,9 @@ int NandChip::writePage(int page, char *buff, int count, NandChip::AccessType ac
 
 NandID *NandChip::getIdPtr() {
 	return m_id;
+}
+
+bool NandChip::hasOnfi()
+{
+	return m_onfi->hasOnfi();
 }

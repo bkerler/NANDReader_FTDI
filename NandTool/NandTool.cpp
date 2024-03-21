@@ -14,6 +14,7 @@
 #include "FtdiNand.hpp"
 #include "FtdiDiag.hpp"
 #include "NandChip.hpp"
+#include "onfi.h"
 
 #define ALL_TESTS	-1
 #define PROGRESS_MESSAGE_SIZE	100
@@ -137,8 +138,10 @@ int _tmain(int argc, _TCHAR* argv[])
 				access=NandChip::accessOob;
 			} else if (strcmp(argv[x], "both")==0) {
 				access=NandChip::accessBoth;
+			} else if (strcmp(argv[x], "onfi") == 0) {
+				access = NandChip::accessOnfi;
 			} else {
-				printf("Must be 'main' 'oob' or 'both': %s\n", argv[x]);
+				printf("Must be 'main' 'oob' 'both' or 'onfi': %s\n", argv[x]);
 				err=true;
 			}
 		} else if (strcmp(argv[x],"-s")==0) {
@@ -150,12 +153,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	if (action==actionNone || err || argc==1) {
-		printf("Usage: [-i|-r file|-v file|-d|-d test_no] [-t main|oob|both] [-s] [-f ftdi_id]\n");
+		printf("Usage: [-i|-r file|-v file|-d|-d test_no] [-t main|oob|both|onfi] [-s] [-f ftdi_id]\n");
 		printf("  -i      - Identify chip\n");
 		printf("  -r file - Read chip to file\n");
 //		printf("  -w file - Write chip from file\n");
 		printf("  -v file - Verify chip from file data\n");
-		printf("  -t reg  - Select region to read/write (main mem, oob ('spare') data or both, interleaved)\n");
+		printf("  -t reg  - Select region to read/write (main mem, oob ('spare') data, both (interleaved) or onfi)\n");
 		printf("  -s      - clock FTDI chip at 12MHz instead of 60MHz\n");
 		printf("  -u vid:pid - use different FTDI USB vid/pid. Vid and pid are in hex.\n");
 		printf("  -d      - FTDI test mode, do all tests\n");
@@ -182,7 +185,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	NandChip nand(&ftdi);
 
 	if (action==actionID) {
-		nand.showInfo();
+		nand.showInfoLong();
 	} else if (action==actionRead || action==actionVerify) {
 		int f;
 		if (action==actionRead) {
@@ -200,6 +203,12 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (access==NandChip::accessMain) size=id->getPageSize();
 		if (access==NandChip::accessOob) size=id->getOobSize();
 		if (access==NandChip::accessBoth) size=id->getOobSize()+id->getPageSize();
+		if (access == NandChip::accessOnfi)
+		{
+			size = ONFI_SIZE;
+			startPage = 0; //supporting only first ONFI page
+			lastPage = 0;
+		}
 		if ((startPage < 0) || (startPage >= pages))
 		{//check starting page number if below zero or over last page number
 			printf("Selected page %d out of range\n");
@@ -228,7 +237,12 @@ int _tmain(int argc, _TCHAR* argv[])
 		char *verifyBuf=new char[size];
 		int verifyErrors=0;
 		nand.showInfo();
-		printf("%sing %i pages of %i bytes...\n", action==actionRead?"Read":"Verify", lastPage - startPage + 1, id->getPageSize());
+		if ((access == NandChip::accessOnfi) && (!nand.hasOnfi()))
+		{
+			printf("NAND chip does not contain ONFI structure\n");
+			exit(1);
+		}
+		printf("%sing %i pages of %i bytes...\n", action==actionRead?"Read":"Verify", lastPage - startPage + 1, size);
 		throughput_time_start = GetTickCountDiff(0);
 		throughput_bytes = 0;
 		throughput_ratio = 0.0;//questionable if it should 0 or INF when ratio is not known
