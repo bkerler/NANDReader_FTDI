@@ -241,11 +241,11 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (lastPage > pages)
 		{//if manually selected, the notify user about changing range
 			printf("Last page %d out of range, trimming end of range to %d\n", lastPage, pages);
-			lastPage = pages;
+			lastPage = pages-1;
 		}
 		if (LAST_PAGE_OF_NAND == lastPage)
 		{//if user intentionally choose last page then update silently
-			lastPage = pages;
+			lastPage = pages-1;
 		}
 		if (LAST_PAGE_OF_NAND > lastPage)
 		{//negative last page number
