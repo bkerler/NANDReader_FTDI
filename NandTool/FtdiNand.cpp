@@ -240,6 +240,7 @@ void FtdiNand::ftdiSendReadCommands(int cl, int al, int count) {
 		error("FT_Write failed");
 	if (buf_ptr != written)
 		error("FT_Write haven't written all bytes");
+	delete[] cmd_buffer;
 }
 
 void FtdiNand::ftdiReadBytes(unsigned char *buffer, int lenght) {
