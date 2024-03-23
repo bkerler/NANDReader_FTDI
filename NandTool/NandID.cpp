@@ -164,7 +164,11 @@ NandID::NandID(FtdiNand *fn, unsigned char *idBytes) {
 	x=0;
 	while (m_devCodes[x].id!=0 && m_devCodes[x].id!=idBytes[1]) x++;
 	if (m_devCodes[x].id==0) {
-		printf("Sorry, unknown nand chip with id code %hhx.\n", idBytes[1]);
+		printf("Sorry, unknown nand chip with id code 0x%02X.\n", idBytes[1]);
+		printf("Answer for Read ID commands (8 bytes, but length may vary)\n");
+		for (int i = 0; i < 8; i++)
+			printf("%02X ", idBytes[i]);
+		printf("\n");
 		exit(0);
 	}
 	
