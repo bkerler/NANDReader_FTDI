@@ -8,6 +8,9 @@ using Linux Kernel source code additions.
 > [!IMPORTANT]
 > **Write support disabled**
 
+> [!WARNING]
+> Read [**Observed.md**](Observed/Observed.md) about observed anomalies.
+
 (c) 2014 B. Kerler <info AT revskills.de>
 
 with nord-data-recall fixes/improvements:
