@@ -1,6 +1,6 @@
-Universal Nand reader for 8 bit NAND memories using FTDI2323H.  
+Universal Nand reader for 8 bit NAND memories using FTDI FT2223H.
 
-Based on http://spritesmods.com/?art=ftdinand code and ideas.  
+Based on http://spritesmods.com/?art=ftdinand code and ideas.
 
 Heavily modified to support universally detecting and dumping nands
 using Linux Kernel source code additions.
