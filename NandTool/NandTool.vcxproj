@@ -94,7 +94,9 @@
     <ClInclude Include="NandData.hpp" />
     <ClInclude Include="NandDataLP.hpp" />
     <ClInclude Include="NandDataSP.hpp" />
-    <ClInclude Include="NandID.hpp" />
+    <ClInclude Include="NandGeometry.hpp" />
+    <ClInclude Include="NandGeometryByID.hpp" />
+    <ClInclude Include="NandGeometryFromUser.hpp" />
     <ClInclude Include="NandOnfi.hpp" />
     <ClInclude Include="onfi.h" />
     <ClInclude Include="stdafx.h" />
@@ -107,7 +109,9 @@
     <ClCompile Include="NandData.cpp" />
     <ClCompile Include="NandDataLP.cpp" />
     <ClCompile Include="NandDataSP.cpp" />
-    <ClCompile Include="NandID.cpp" />
+    <ClCompile Include="NandGeometry.cpp" />
+    <ClCompile Include="NandGeometryByID.cpp" />
+    <ClCompile Include="NandGeometryFromUser.cpp" />
     <ClCompile Include="NandOnfi.cpp" />
     <ClCompile Include="NandTool.cpp" />
     <ClCompile Include="stdafx.cpp" />

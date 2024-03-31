@@ -27,21 +27,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "NandCmds.h"
+#include "NandGeometryFromUser.hpp"
+#include "NandGeometryByID.hpp"
 
-NandChip::NandChip(FtdiNand *fn) {
+NandChip::NandChip(FtdiNand *fn, char* geometry) {
 	unsigned char id[8];
-	m_fn=fn;
+	m_fn = fn;
 	//Try to read the 5 NAND ID-bytes and create the ID-object
 	m_fn->sendCmd(NAND_CMD_READID);
 	m_fn->sendAddr(0, 1);
 	m_fn->readData((char *)id, 8);
-	m_id=new NandID(fn,id);
+	if (NULL == geometry)
+		m_id = new NandGeometryByID(fn, id);
+	else
+		m_id = new NandGeometryFromUser(fn, id, geometry);
 	m_onfi = new NandOnfi(fn);
 	//We use a different data object for large- and small-page devices
 	if (m_id->isLargePage()) {
-		m_data=new NandDataLP(fn, m_id);
-	} else {
-		m_data=new NandDataSP(fn, m_id);
+		m_data = new NandDataLP(fn, m_id);
+	}
+	else {
+		m_data = new NandDataSP(fn, m_id);
 	}
 }
 
@@ -100,7 +106,7 @@ int NandChip::writePage(int page, char *buff, int count, NandChip::AccessType ac
 	return r;
 }
 
-NandID *NandChip::getIdPtr() {
+NandGeometry *NandChip::getIdPtr() {
 	return m_id;
 }
 

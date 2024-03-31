@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 //Data interface for large-page NAND chips
 
-NandDataLP::NandDataLP(FtdiNand *ftdi, NandID *id) :
+NandDataLP::NandDataLP(FtdiNand *ftdi, NandGeometry *id) :
  NandData(ftdi, id) {
 	//NA
 }

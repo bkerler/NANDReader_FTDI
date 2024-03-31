@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 //Generic NAND data interface.
 
-NandData::NandData(FtdiNand *ftdi, NandID *id) {
+NandData::NandData(FtdiNand *ftdi, NandGeometry *id) {
 	m_ft=ftdi;
 	m_id=id;
 }

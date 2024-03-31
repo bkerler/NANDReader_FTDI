@@ -16,6 +16,7 @@
 #include "NandChip.hpp"
 #include "onfi.h"
 #include "NandOnfi.hpp"
+#include "NandGeometryFromUser.hpp"
 
 #define ALL_TESTS	-1
 #define PROGRESS_MESSAGE_SIZE	100
@@ -58,6 +59,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	int lastPage = LAST_PAGE_OF_NAND;
 	int sizeOfChunks = 0;
 	char *secondSubArgPtr;
+	char *geometry_param = NULL;
 	string file="";
 	enum Action {
 		actionNone=0,
@@ -124,6 +126,8 @@ int _tmain(int argc, _TCHAR* argv[])
 				startPage = strtol(argv[x], NULL, 0);
 				lastPage = strtol(secondSubArgPtr+1, NULL, 0);
 			}
+		} else if (strcmp(argv[x], "-g") == 0 && x <= (argc - 2)) {
+			geometry_param = argv[++x];
 		} else if (strcmp(argv[x],"-u")==0 && x<=(argc-2)) {
 			action=actionVerify;
 			char *endp;
@@ -173,6 +177,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("  -p start:stop - do operation on range of pages\n");
 		printf("  -c size - size of data chunks processed at one time (default 0 = infinity)\n");
 		printf("  -show_onfi file - print ONFI section from file\n");
+		printf("  -g %s - define or override chip geometry\n", NandGeometryFromUser::getTextTemplate());
 		exit(0);
 	}
 
@@ -206,7 +211,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	FtdiNand ftdi;
 	ftdi.open(vid, pid, doSlow, dev_id, sizeOfChunks);
-	NandChip nand(&ftdi);
+	NandChip nand(&ftdi, geometry_param);
 
 	if (action==actionID) {
 		nand.showInfoLong();
@@ -221,8 +226,8 @@ int _tmain(int argc, _TCHAR* argv[])
 			perror(file.c_str());
 			exit(1);
 		}
-		NandID *id=nand.getIdPtr();
-		long pages=(id->getSizeMB()*1024LL*1024LL)/id->getPageSize();
+		NandGeometry *id=nand.getIdPtr();
+		long pages = id->getPagesCount();
 		int size=0;
 		if (access==NandChip::accessMain) size=id->getPageSize();
 		if (access==NandChip::accessOob) size=id->getOobSize();

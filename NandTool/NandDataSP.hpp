@@ -7,7 +7,7 @@ using namespace std;
 
 class NandDataSP: public NandData {
 public:
-	NandDataSP(FtdiNand *ftdi, NandID *id);
+	NandDataSP(FtdiNand *ftdi, NandGeometry *id);
 	virtual int readPage(int pageno, char *buf, int max);
 	virtual int readOob(int pageno, char *buf, int max);
 	virtual int writePage(int pageno, char *buf, int len);

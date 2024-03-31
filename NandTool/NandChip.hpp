@@ -2,7 +2,7 @@
 #define NANDCHIP_HPP
 
 #include "FtdiNand.hpp"
-#include "NandID.hpp"
+#include "NandGeometry.hpp"
 #include "NandData.hpp"
 #include "NandOnfi.hpp"
 
@@ -10,7 +10,7 @@ using namespace std;
 
 class NandChip {
 public:
-	NandChip(FtdiNand *fn);
+	NandChip(FtdiNand *fn, char* geometry);
 	~NandChip();
 	enum AccessType {
 		accessNone=0,
@@ -23,13 +23,13 @@ public:
 	void showInfoLong();
 	int readPage(int page, char *buff, int count, AccessType access);
 	int writePage(int page, char *buff, int count, AccessType access);
-	NandID *getIdPtr();
+	NandGeometry *getIdPtr();
 	bool hasOnfi();
 private:
 	void showCommon();
 	FtdiNand *m_fn;
 	NandOnfi *m_onfi;
-	NandID *m_id;
+	NandGeometry *m_id;
 	NandData *m_data;
 };
 

@@ -9,7 +9,7 @@ using Linux Kernel source code additions.
 > **Write support disabled**
 
 > [!WARNING]
-> Read [**Observed.md**](Observed/Observed.md) about observed anomalies.
+> Read [**Observed**](Observed/Observed.md) about observed anomalies.
 
 (c) 2014 B. Kerler <info AT revskills.de>
 
@@ -68,3 +68,15 @@ with nord-data-recall fixes/improvements:
    human-readable form using the -i (identify chip) command. Alternatively an existing file containing
    ONFI information can be presented in human-readable form, even NAND Reader, using using command
    -show_onfi filename.
+   
+8. Option to select NAND chip geometry from command line. If the ID read from the NAND memory does not
+   match with none of hardcoded list, application does not know how big is memory or how to address
+   memory. Sometimes an ID from hardcoded list matches a NAND memory with a completly different geometry.
+   To handle such cases, the -g parameter was introduced requiring an argument in format:
+   pages:addressing:page_mode:main_size:spare_size, where:  
+   *pages* is the total number of pages  
+   *addressing* is the addressing format, for example "LPsimple5B"  
+   *main_size* is the size of main part of page (in bytes)  
+   *spare_size* is the size of spare parta of page (in bytes)  
+   Read [**Geometry**](Geometry.md) how to use it 
+   
