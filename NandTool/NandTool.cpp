@@ -320,9 +320,41 @@ int _tmain(int argc, _TCHAR* argv[])
 			printf("\nVerify: %i bytes differ between NAND and file.\n", verifyErrors);
 		else
 			printf("\n");//actionRead or actionWrite
+		long int total_seconds = GetTickCountDiff(throughput_time_start) / 1000;
+		if (total_seconds > 15)
+		{
+			int days = total_seconds / 60 / 60 / 24;
+			total_seconds -= days * 60 * 60 * 24;
+			int hours = total_seconds / 60 / 60;
+			total_seconds -= hours * 60 * 60;
+			int minutes = total_seconds / 60;
+			total_seconds -= minutes * 60;
+			printf("Operation took");
+			if (0 != days)
+			{
+				printf(" %d day", days);
+				if (days > 1)
+					printf("s");
+			}
+			if ((0 != hours) || (0 != days))
+			{
+				printf(" %d hour", hours);
+				if (hours > 1)
+					printf("s");
+			}
+			if ((0 != minutes) || (0 != hours) || (0 != days))
+			{
+				printf(" %d minute", minutes);
+				if (minutes > 1)
+					printf("s");
+			}
+			printf(" %d second", total_seconds);
+			if (total_seconds > 1)
+				printf("s");
+			printf("\n");
+		}
 	}
-	
-	printf("All done.\n"); 
+	printf("All done\n");
 	return 0;
 }
 

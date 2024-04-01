@@ -80,3 +80,5 @@ with nord-data-recall fixes/improvements:
    *spare_size* is the size of spare parta of page (in bytes)  
    Read [**Geometry**](Geometry.md) how to use it 
    
+9. Printing information about the process duration in days, hours, minutes and seconds.
+   
