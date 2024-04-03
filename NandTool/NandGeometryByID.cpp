@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "NandID.hpp"
 #include <stdio.h>
 #include <stdlib.h>
@@ -127,7 +126,6 @@ static int nand_id_has_period(unsigned char *id_data, int arrlen, int period)
 	return 1;
 }
 
-
 static int nand_id_len(unsigned char *id_data, int arrlen)
 {
 	int last_nonzero, period;
@@ -166,26 +164,16 @@ NandID::NandID(FtdiNand *fn, unsigned char *idBytes) {
 	x=0;
 	while (m_devCodes[x].id!=0 && m_devCodes[x].id!=idBytes[1]) x++;
 	if (m_devCodes[x].id==0) {
-		printf("Sorry, unknown nand chip with id code %hhx.\n", idBytes[1]);
+		printf("Sorry, unknown nand chip with id code 0x%02X.\n", idBytes[1]);
+		printf("Answer for Read ID commands (8 bytes, but length may vary)\n");
+		for (int i = 0; i < 8; i++)
+			printf("%02X ", idBytes[i]);
+		printf("\n");
 		exit(0);
 	}
 	
 	m_nandDesc=m_devCodes[x].name;
 
-	unsigned char onfi[4]={0};
-	fn->sendCmd(NAND_CMD_READID);
-	fn->sendAddr(0x20, 1);
-	fn->readData((char *)onfi, 4);
-	m_onfib=(onfi[0]=='O' && onfi[1]=='N' && onfi[2]=='F' && onfi[3]=='I')?true:false;
-	if (m_onfib)
-	{
-		fn->sendCmd(NAND_CMD_ONFI);
-		fn->sendAddr(0, 1);
-		fn->waitReady();
-		fn->readData((char*)&m_onfi, sizeof(m_onfi));
-		if (m_onfi.rev.magic==0x49464E4F) m_onfib=true;
-		else m_onfib=false;
-	}
 	m_nandChipSzMB=m_devCodes[x].chipsizeMB;
 	m_nandIsLP=((m_devCodes[x].options&LP_OPTIONS)!=0);
 	/*if (m_devCodes[x].pagesize!=0) {
@@ -366,6 +354,3 @@ int NandID::getAddrByteCount() {
 	}
 	return cyc;*/
 }
-
-
-

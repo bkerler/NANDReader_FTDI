@@ -39,13 +39,25 @@
     <ClInclude Include="NandDataSP.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="NandID.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="NandCmds.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="FtdiDiag.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="NandOnfi.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="onfi.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="NandGeometry.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="NandGeometryFromUser.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="NandGeometryByID.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -71,10 +83,19 @@
     <ClCompile Include="NandDataSP.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="NandID.cpp">
+    <ClCompile Include="FtdiDiag.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="FtdiDiag.cpp">
+    <ClCompile Include="NandOnfi.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="NandGeometryFromUser.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="NandGeometry.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="NandGeometryByID.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

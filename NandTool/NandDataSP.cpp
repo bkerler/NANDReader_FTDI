@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 //Data handler for a small-page flash.
 
-NandDataSP::NandDataSP(FtdiNand *ftdi, NandID *id) :
+NandDataSP::NandDataSP(FtdiNand *ftdi, NandGeometry *id) :
  NandData(ftdi, id) {
 	//NA
 }
